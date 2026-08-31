@@ -1,0 +1,493 @@
+// ─── MVM FOX — Prisma Schema ───
+// PostgreSQL
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ────────────────────────────────────────────
+// AUTH & USERS
+// ────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String
+  role          UserRole  @default(ADMIN)
+  isActive      Boolean   @default(true)
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  auditLogs     AuditLog[]
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  CONTENT_MANAGER
+  ORDER_MANAGER
+}
+
+// ────────────────────────────────────────────
+// CUSTOMERS
+// ────────────────────────────────────────────
+
+model Customer {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  firstName     String
+  lastName      String
+  phone         String?
+  companyName   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  orders             Order[]
+  cateringRequests   CateringRequest[]
+  serviceRequests    ServiceRequest[]
+}
+
+// ────────────────────────────────────────────
+// BRANDS
+// ────────────────────────────────────────────
+
+model Brand {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  name          String
+  tagline       String?
+  description   String?
+  logoUrl       String?
+  coverImageUrl String?
+  isActive      Boolean   @default(true)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  products      Product[]
+  services      Service[]
+}
+
+// ────────────────────────────────────────────
+// SERVICES
+// ────────────────────────────────────────────
+
+model ServiceCategory {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  name          String
+  description   String?
+  icon          String?
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  services      Service[]
+}
+
+model Service {
+  id              String          @id @default(cuid())
+  slug            String          @unique
+  title           String
+  shortDescription String
+  description     String
+  imageUrl        String?
+  benefits        Json?
+  process         Json?
+  isActive        Boolean         @default(true)
+  sortOrder       Int             @default(0)
+  brandId         String?
+  categoryId      String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  brand           Brand?          @relation(fields: [brandId], references: [id])
+  category        ServiceCategory? @relation(fields: [categoryId], references: [id])
+  serviceRequests ServiceRequest[]
+  faqs            FAQ[]
+}
+
+model ServiceRequest {
+  id              String            @id @default(cuid())
+  referenceCode   String            @unique
+  serviceId       String
+  customerId      String
+  name            String
+  email           String
+  phone           String?
+  companyName     String?
+  location        String?
+  description     String?
+  eventDetails    Json?
+  status          ServiceRequestStatus @default(NEW)
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  service         Service           @relation(fields: [serviceId], references: [id])
+  customer        Customer          @relation(fields: [customerId], references: [id])
+}
+
+enum ServiceRequestStatus {
+  NEW
+  REVIEWING
+  QUOTED
+  COMPLETED
+  CANCELLED
+}
+
+// ────────────────────────────────────────────
+// PRODUCTS (E-commerce)
+// ────────────────────────────────────────────
+
+model ProductCategory {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  name          String
+  description   String?
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  products      Product[]
+}
+
+model Product {
+  id              String          @id @default(cuid())
+  slug            String          @unique
+  name            String
+  shortDescription String
+  description     String
+  price           Decimal         @db.Decimal(10, 2)
+  compareAtPrice  Decimal?        @db.Decimal(10, 2)
+  sku             String?
+  stock           Int             @default(0)
+  status          ProductStatus   @default(DRAFT)
+  isActive        Boolean         @default(true)
+  sortOrder       Int             @default(0)
+  brandId         String?
+  categoryId      String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  brand           Brand?          @relation(fields: [brandId], references: [id])
+  category        ProductCategory? @relation(fields: [categoryId], references: [id])
+  images          ProductImage[]
+  orderItems      OrderItem[]
+  cartItems       CartItem[]
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model ProductImage {
+  id            String    @id @default(cuid())
+  productId     String
+  url           String
+  alt           String?
+  isPrimary     Boolean   @default(false)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// ────────────────────────────────────────────
+// CART & ORDERS
+// ────────────────────────────────────────────
+
+model Cart {
+  id            String      @id @default(cuid())
+  sessionId     String      @unique
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  items         CartItem[]
+}
+
+model CartItem {
+  id            String    @id @default(cuid())
+  cartId        String
+  productId     String
+  quantity      Int       @default(1)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  cart          Cart      @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product       Product   @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id              String          @id @default(cuid())
+  orderNumber     String          @unique
+  referenceCode   String          @unique
+  customerId      String?
+  email           String
+  phone           String?
+  firstName       String
+  lastName        String
+  shippingAddress Json?
+  status          OrderStatus     @default(PENDING)
+  paymentStatus   PaymentStatus   @default(PENDING)
+  subtotal        Decimal         @db.Decimal(10, 2)
+  tax             Decimal         @db.Decimal(10, 2) @default(0)
+  total           Decimal         @db.Decimal(10, 2)
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  customer        Customer?       @relation(fields: [customerId], references: [id])
+  items           OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+model OrderItem {
+  id            String    @id @default(cuid())
+  orderId       String
+  productId     String
+  productName   String
+  price         Decimal   @db.Decimal(10, 2)
+  quantity      Int
+  createdAt     DateTime  @default(now())
+
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product   @relation(fields: [productId], references: [id])
+}
+
+// ────────────────────────────────────────────
+// CATERING
+// ────────────────────────────────────────────
+
+model CateringMenu {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  name          String
+  description   String?
+  imageUrl      String?
+  isActive      Boolean   @default(true)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  packages      CateringPackage[]
+}
+
+model CateringPackage {
+  id              String            @id @default(cuid())
+  slug            String            @unique
+  menuId          String
+  name            String
+  description     String?
+  pricePerGuest   Decimal?          @db.Decimal(10, 2)
+  minimumGuests   Int?
+  imageUrl        String?
+  includes        Json?
+  isActive        Boolean           @default(true)
+  sortOrder       Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  menu            CateringMenu      @relation(fields: [menuId], references: [id])
+  requests        CateringRequest[]
+}
+
+model CateringEvent {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  name          String
+  description   String?
+  icon          String?
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  requests      CateringRequest[]
+}
+
+model CateringRequest {
+  id              String              @id @default(cuid())
+  referenceCode   String              @unique
+  customerId      String?
+  name            String
+  email           String
+  phone           String?
+  companyName     String?
+  packageName     String?
+  guestCount      Int
+  eventDate       DateTime?
+  eventType       String?
+  eventTypeId     String?
+  location        String?
+  address         String?
+  notes           String?
+  status          CateringRequestStatus @default(NEW)
+  adminNotes      String?
+  quotedPrice     Decimal?            @db.Decimal(10, 2)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  customer        Customer?           @relation(fields: [customerId], references: [id])
+  event           CateringEvent?      @relation(fields: [eventTypeId], references: [id])
+  package         CateringPackage?    @relation(fields: [packageName], references: [slug])
+}
+
+enum CateringRequestStatus {
+  NEW
+  REVIEWING
+  QUOTED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+// ────────────────────────────────────────────
+// CMS & CONTENT
+// ────────────────────────────────────────────
+
+model Media {
+  id            String    @id @default(cuid())
+  url           String
+  fileName      String
+  mimeType      String?
+  fileSize      Int?
+  alt           String?
+  width         Int?
+  height        Int?
+  folder        String?
+  isPlaceholder Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Testimonial {
+  id            String    @id @default(cuid())
+  quote         String
+  authorName    String
+  authorTitle   String?
+  authorAvatar  String?
+  isPublished   Boolean   @default(false)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model FAQ {
+  id            String    @id @default(cuid())
+  question      String
+  answer        String
+  category      String?
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  serviceId     String?
+  service       Service?  @relation(fields: [serviceId], references: [id])
+}
+
+model Page {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  title         String
+  content       Json
+  metaTitle     String?
+  metaDescription String?
+  isPublished   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model HomepageSection {
+  id            String    @id @default(cuid())
+  type          String
+  title         String?
+  subtitle      String?
+  content       Json?
+  imageUrl      String?
+  ctaText       String?
+  ctaLink       String?
+  isVisible     Boolean   @default(true)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model SiteSetting {
+  id            String    @id @default(cuid())
+  key           String    @unique
+  value         Json
+  group         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ────────────────────────────────────────────
+// NOTIFICATIONS
+// ────────────────────────────────────────────
+
+model Notification {
+  id            String    @id @default(cuid())
+  type          String
+  title         String
+  message       String
+  entityId      String?
+  entityType    String?
+  isRead        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+}
+
+// ────────────────────────────────────────────
+// DRAFT PERSISTENCE
+// ────────────────────────────────────────────
+
+model FormDraft {
+  id            String    @id @default(cuid())
+  token         String    @unique
+  formType      String
+  data          Json
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ────────────────────────────────────────────
+// AUDIT LOG
+// ────────────────────────────────────────────
+
+model AuditLog {
+  id            String    @id @default(cuid())
+  userId        String
+  action        String
+  entity        String
+  entityId      String?
+  before        Json?
+  after         Json?
+  ipAddress     String?
+  createdAt     DateTime  @default(now())
+
+  user          User      @relation(fields: [userId], references: [id])
+}

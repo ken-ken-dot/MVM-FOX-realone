@@ -1,0 +1,461 @@
+import Link from "next/link";
+import Image from "next/image";
+import {
+  ArrowRight,
+  UtensilsCrossed,
+  ShoppingBag,
+  Briefcase,
+  Star,
+  Phone,
+} from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { formatCurrency } from "@/lib/utils";
+
+interface SectionContent {
+  title?: string | null;
+  subtitle?: string | null;
+  description?: string | null;
+  content?: Record<string, unknown> | null;
+  ctaText?: string | null;
+  ctaLink?: string | null;
+  imageUrl?: string | null;
+}
+
+async function getHomepageData() {
+  try {
+    const [services, products, testimonials, brands, sections] =
+      await Promise.all([
+        prisma.service.findMany({
+          where: { isActive: true },
+          include: { category: true },
+          orderBy: { sortOrder: "asc" },
+          take: 4,
+        }),
+        prisma.product.findMany({
+          where: { status: "PUBLISHED", isActive: true },
+          include: { images: { where: { isPrimary: true }, take: 1 } },
+          orderBy: { sortOrder: "asc" },
+          take: 4,
+        }),
+        prisma.testimonial.findMany({
+          where: { isPublished: true },
+          orderBy: { sortOrder: "asc" },
+          take: 3,
+        }),
+        prisma.brand.findMany({
+          where: { isActive: true },
+          orderBy: { sortOrder: "asc" },
+        }),
+        prisma.homepageSection.findMany({
+          where: { isVisible: true },
+          orderBy: { sortOrder: "asc" },
+        }),
+      ]);
+
+    // Build section map by type
+    const sectionMap: Record<string, SectionContent> = {};
+    for (const section of sections) {
+      sectionMap[section.type] = {
+        title: section.title,
+        subtitle: section.subtitle,
+        description: (section.content as Record<string, unknown> | null)?.description as string | null || null,
+        content: section.content as Record<string, unknown> | null,
+        ctaText: section.ctaText,
+        ctaLink: section.ctaLink,
+        imageUrl: section.imageUrl,
+      };
+    }
+
+    return { services, products, testimonials, brands, sectionMap };
+  } catch {
+    return {
+      services: [],
+      products: [],
+      testimonials: [],
+      brands: [],
+      sectionMap: {} as Record<string, SectionContent>,
+    };
+  }
+}
+
+// Default content when no CMS section exists
+const defaultHero = {
+  subtitle: "Multi-Service Business Platform",
+  title: "Premium Services.\nExceptional Quality.",
+  description:
+    "From world-class catering to curated products and professional services — MVM FOX delivers excellence across every touchpoint.",
+  ctaText: "Explore Services",
+  ctaLink: "/services",
+};
+
+const defaultCatering = {
+  subtitle: "Velvet Catering",
+  title: "Unforgettable Events,\nPerfectly Crafted",
+  description:
+    "From intimate gatherings to grand celebrations, our catering team delivers exceptional culinary experiences tailored to your vision.",
+  ctaText: "View Catering",
+  ctaLink: "/catering",
+};
+
+const defaultFinalCta = {
+  title: "Ready to Get Started?",
+  description:
+    "Whether you need catering for a special event, want to shop our products, or are looking for professional services — we're here to help.",
+  ctaText: "Get a Quote",
+  ctaLink: "/request-quote",
+};
+
+export default async function HomePage() {
+  const { services, products, testimonials, brands, sectionMap } =
+    await getHomepageData();
+
+  const hero = sectionMap["hero"] || defaultHero;
+  const catering = sectionMap["catering_cta"] || defaultCatering;
+  const finalCta = sectionMap["final_cta"] || defaultFinalCta;
+
+  const heroTitle = (hero.title || defaultHero.title).split("\n");
+  const cateringTitle = (catering.title || defaultCatering.title).split("\n");
+
+  return (
+    <div className="flex flex-col">
+      {/* ─── Hero (Dark) — CMS: hero ─── */}
+      <section className="relative bg-bg-primary-dark text-text-on-dark pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden">
+        <div className="container-mvm relative z-10">
+          <div className="max-w-3xl">
+            <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-4">
+              {hero.subtitle || defaultHero.subtitle}
+            </p>
+            <h1 className="text-display md:text-[4.5rem] font-bold tracking-tight leading-[1.05] mb-6">
+              {heroTitle[0]}
+              <br />
+              <span className="text-accent">{heroTitle[1]}</span>
+            </h1>
+            <p className="text-body-lg text-text-on-dark-secondary max-w-xl mb-8">
+              {hero.description || defaultHero.description}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href={hero.ctaLink || defaultHero.ctaLink}
+                className="inline-flex items-center justify-center h-12 px-7 rounded-md bg-accent text-text-on-accent text-body font-medium hover:bg-accent-hover transition-colors"
+              >
+                {hero.ctaText || defaultHero.ctaText}
+                <ArrowRight size={18} className="ml-2" />
+              </Link>
+              <Link
+                href="/catering"
+                className="inline-flex items-center justify-center h-12 px-7 rounded-md border border-border-dark text-text-on-dark text-body font-medium hover:bg-bg-primary-dark-elevated transition-colors"
+              >
+                Catering
+              </Link>
+            </div>
+          </div>
+        </div>
+        {hero.imageUrl && (
+          <Image
+            src={hero.imageUrl}
+            alt=""
+            fill
+            sizes="50vw"
+            priority
+            className="object-cover opacity-20 pointer-events-none"
+          />
+        )}
+        {!hero.imageUrl && (
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-accent/5 to-transparent pointer-events-none" />
+        )}
+      </section>
+
+      {/* ─── Services Preview (Light) — DB: live services ─── */}
+      <section className="section-padding bg-bg-primary-light">
+        <div className="container-mvm">
+          <div className="flex items-end justify-between mb-12">
+            <div>
+              <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
+                What We Do
+              </p>
+              <h2 className="text-h1 font-bold tracking-tight">
+                Our Services
+              </h2>
+            </div>
+            <Link
+              href="/services"
+              className="hidden md:inline-flex items-center gap-2 text-body-sm font-medium text-accent hover:text-accent-hover transition-colors"
+            >
+              View all services
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          {services.length === 0 ? (
+            <div className="text-center py-16">
+              <Briefcase size={48} className="mx-auto text-text-tertiary mb-4" />
+              <p className="text-body-lg text-text-secondary">
+                Services coming soon.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {services.map((service) => (
+                <Link
+                  key={service.id}
+                  href={`/services/${service.slug}`}
+                  className="group rounded-lg border border-border-subtle bg-white p-6 hover:shadow-md transition-shadow"
+                >
+                  {service.category && (
+                    <p className="text-caption text-accent font-medium mb-2">
+                      {service.category.name}
+                    </p>
+                  )}
+                  <h3 className="text-h4 font-semibold mb-2 group-hover:text-accent transition-colors">
+                    {service.title}
+                  </h3>
+                  <p className="text-body-sm text-text-secondary line-clamp-2">
+                    {service.shortDescription}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          <div className="md:hidden mt-8 text-center">
+            <Link
+              href="/services"
+              className="inline-flex items-center gap-2 text-body-sm font-medium text-accent"
+            >
+              View all services <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Products Preview (Dark) — DB: live products ─── */}
+      <section className="section-padding bg-bg-primary-dark text-text-on-dark">
+        <div className="container-mvm">
+          <div className="flex items-end justify-between mb-12">
+            <div>
+              <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
+                Shop
+              </p>
+              <h2 className="text-h1 font-bold tracking-tight">
+                Featured Products
+              </h2>
+            </div>
+            <Link
+              href="/shop"
+              className="hidden md:inline-flex items-center gap-2 text-body-sm font-medium text-accent hover:text-accent-hover transition-colors"
+            >
+              Browse shop
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          {products.length === 0 ? (
+            <div className="text-center py-16">
+              <ShoppingBag size={48} className="mx-auto text-text-on-dark-secondary mb-4" />
+              <p className="text-body-lg text-text-on-dark-secondary">
+                Products coming soon.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/shop/${product.slug}`}
+                  className="group rounded-lg border border-border-dark bg-surface-card-dark p-5 hover:border-accent/30 transition-colors"
+                >
+                  <div className="aspect-square rounded-md bg-bg-primary-dark-elevated mb-4 flex items-center justify-center">
+                    {product.images[0] ? (
+                      <Image
+                        src={product.images[0].url}
+                        alt={product.images[0].alt || product.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        className="object-cover rounded-md"
+                      />
+                    ) : (
+                      <ShoppingBag size={32} className="text-text-on-dark-secondary" />
+                    )}
+                  </div>
+                  <h3 className="text-body font-semibold mb-1 group-hover:text-accent transition-colors">
+                    {product.name}
+                  </h3>
+                  <p className="text-body-sm text-text-on-dark-secondary">
+                    {formatCurrency(product.price)}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          <div className="md:hidden mt-8 text-center">
+            <Link
+              href="/shop"
+              className="inline-flex items-center gap-2 text-body-sm font-medium text-accent"
+            >
+              Browse shop <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Catering CTA (Light, editorial split) — CMS: catering_cta ─── */}
+      <section className="section-padding bg-bg-primary-light">
+        <div className="container-mvm">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
+                {catering.subtitle || defaultCatering.subtitle}
+              </p>
+              <h2 className="text-h1 font-bold tracking-tight mb-4">
+                {cateringTitle[0]}
+                <br />
+                {cateringTitle[1]}
+              </h2>
+              <p className="text-body-lg text-text-secondary mb-6">
+                {catering.description || defaultCatering.description}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href={catering.ctaLink || defaultCatering.ctaLink}
+                  className="inline-flex items-center justify-center h-12 px-7 rounded-md bg-accent text-text-on-accent text-body font-medium hover:bg-accent-hover transition-colors"
+                >
+                  {catering.ctaText || defaultCatering.ctaText}
+                  <ArrowRight size={18} className="ml-2" />
+                </Link>
+                <Link
+                  href="/request-catering"
+                  className="inline-flex items-center justify-center h-12 px-7 rounded-md border border-border-default text-text-primary text-body font-medium hover:bg-surface-neutral transition-colors"
+                >
+                  Request Quote
+                </Link>
+              </div>
+            </div>
+            <div className="relative aspect-[4/3] rounded-xl bg-bg-primary-dark overflow-hidden">
+              {catering.imageUrl ? (
+                <Image
+                  src={catering.imageUrl}
+                  alt="Catering event setup"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <UtensilsCrossed size={64} className="text-accent/30" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Testimonials (Dark) — DB: live testimonials ─── */}
+      {testimonials.length > 0 && (
+        <section className="section-padding bg-bg-primary-dark text-text-on-dark">
+          <div className="container-mvm">
+            <div className="text-center mb-12">
+              <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
+                Testimonials
+              </p>
+              <h2 className="text-h1 font-bold tracking-tight">
+                What People Say
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {testimonials.map((t) => (
+                <div
+                  key={t.id}
+                  className="rounded-lg border border-border-dark bg-surface-card-dark p-6"
+                >
+                  <div className="flex items-center gap-1 mb-3">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        size={14}
+                        className="text-accent fill-accent"
+                      />
+                    ))}
+                  </div>
+                  <p className="text-body-sm text-text-on-dark-secondary italic mb-4">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                  <div>
+                    <p className="text-body-sm font-semibold text-text-on-dark">
+                      {t.authorName}
+                    </p>
+                    {t.authorTitle && (
+                      <p className="text-caption text-text-on-dark-secondary">
+                        {t.authorTitle}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ─── Brands (Light) — DB: live brands ─── */}
+      {brands.length > 0 && (
+        <section className="section-padding bg-bg-primary-light">
+          <div className="container-mvm text-center">
+            <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
+              Our Brands
+            </p>
+            <h2 className="text-h1 font-bold tracking-tight mb-12">
+              The MVM FOX Family
+            </h2>
+            <div className="flex flex-wrap justify-center gap-8">
+              {brands.map((brand) => (
+                <Link
+                  key={brand.id}
+                  href={`/brands/${brand.slug}`}
+                  className="group rounded-lg border border-border-subtle bg-white px-8 py-6 hover:shadow-md transition-shadow"
+                >
+                  <h3 className="text-h4 font-semibold group-hover:text-accent transition-colors">
+                    {brand.name}
+                  </h3>
+                  {brand.tagline && (
+                    <p className="text-body-sm text-text-secondary mt-1">
+                      {brand.tagline}
+                    </p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ─── Final CTA (Dark) — CMS: final_cta ─── */}
+      <section className="section-padding bg-bg-primary-dark text-text-on-dark">
+        <div className="container-mvm text-center">
+          <h2 className="text-h1 md:text-display font-bold tracking-tight mb-4">
+            {finalCta.title || defaultFinalCta.title}
+          </h2>
+          <p className="text-body-lg text-text-on-dark-secondary max-w-xl mx-auto mb-8">
+            {finalCta.description || defaultFinalCta.description}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href={finalCta.ctaLink || defaultFinalCta.ctaLink}
+              className="inline-flex items-center justify-center h-12 px-7 rounded-md bg-accent text-text-on-accent text-body font-medium hover:bg-accent-hover transition-colors"
+            >
+              {finalCta.ctaText || defaultFinalCta.ctaText}
+              <ArrowRight size={18} className="ml-2" />
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center h-12 px-7 rounded-md border border-border-dark text-text-on-dark text-body font-medium hover:bg-bg-primary-dark-elevated transition-colors"
+            >
+              <Phone size={18} className="mr-2" />
+              Contact Us
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
