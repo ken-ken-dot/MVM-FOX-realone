@@ -9,6 +9,7 @@ import {
   Phone,
 } from "lucide-react";
 import { ScrollReveal } from "@/components/ui";
+import { HeroSlider } from "@/components/sections/hero-slider";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 
@@ -67,7 +68,20 @@ async function getHomepageData() {
       };
     }
 
-    return { services, products, testimonials, brands, sectionMap };
+    // Build hero slides from hero_slide_N sections
+    const heroSlides = sections
+      .filter((s) => s.type.startsWith("hero_slide_"))
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((s) => ({
+        title: s.title || "",
+        subtitle: s.subtitle || "",
+        description: (s.content as Record<string, unknown> | null)?.description as string || "",
+        ctaText: s.ctaText || "Explore",
+        ctaLink: s.ctaLink || "/shop",
+        imageUrl: s.imageUrl || "",
+      }));
+
+    return { services, products, testimonials, brands, sectionMap, heroSlides };
   } catch {
     return {
       services: [],
@@ -75,22 +89,14 @@ async function getHomepageData() {
       testimonials: [],
       brands: [],
       sectionMap: {} as Record<string, SectionContent>,
+      heroSlides: [],
     };
   }
 }
 
 // Default content when no CMS section exists
-const defaultHero = {
-  subtitle: "Multi-Service Business Platform",
-  title: "Premium Services.\nExceptional Quality.",
-  description:
-    "From world-class catering to curated products and professional services — MVM FOX delivers excellence across every touchpoint.",
-  ctaText: "Explore Services",
-  ctaLink: "/services",
-};
-
 const defaultCatering = {
-  subtitle: "Velvet Catering",
+  subtitle: "Velvet Fox",
   title: "Unforgettable Events,\nPerfectly Crafted",
   description:
     "From intimate gatherings to grand celebrations, our catering team delivers exceptional culinary experiences tailored to your vision.",
@@ -107,64 +113,33 @@ const defaultFinalCta = {
 };
 
 export default async function HomePage() {
-  const { services, products, testimonials, brands, sectionMap } =
+  const { services, products, testimonials, brands, sectionMap, heroSlides } =
     await getHomepageData();
 
-  const hero = sectionMap["hero"] || defaultHero;
   const catering = sectionMap["catering_cta"] || defaultCatering;
   const finalCta = sectionMap["final_cta"] || defaultFinalCta;
-
-  const heroTitle = (hero.title || defaultHero.title).split("\n");
   const cateringTitle = (catering.title || defaultCatering.title).split("\n");
 
   return (
     <div className="flex flex-col">
-      {/* ─── Hero (Dark) — CMS: hero ─── */}
-      <section className="relative bg-bg-primary-dark text-text-on-dark pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden">
-        <div className="container-mvm relative z-10">
-          <div className="max-w-3xl">
-            <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-4">
-              {hero.subtitle || defaultHero.subtitle}
-            </p>
-            <h1 className="text-display md:text-[4.5rem] font-bold tracking-tight leading-[1.05] mb-6">
-              {heroTitle[0]}
-              <br />
-              <span className="text-accent">{heroTitle[1]}</span>
-            </h1>
-            <p className="text-body-lg text-text-on-dark-secondary max-w-xl mb-8">
-              {hero.description || defaultHero.description}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href={hero.ctaLink || defaultHero.ctaLink}
-                className="inline-flex items-center justify-center h-12 px-7 rounded-md bg-accent text-text-on-accent text-body font-medium hover:bg-accent-hover transition-colors"
-              >
-                {hero.ctaText || defaultHero.ctaText}
-                <ArrowRight size={18} className="ml-2" />
-              </Link>
-              <Link
-                href="/catering"
-                className="inline-flex items-center justify-center h-12 px-7 rounded-md border border-border-dark text-text-on-dark text-body font-medium hover:bg-bg-primary-dark-elevated transition-colors"
-              >
-                Catering
-              </Link>
+      {/* ─── Hero Slider — CMS: hero_slide_N ─── */}
+      {heroSlides.length > 0 ? (
+        <HeroSlider slides={heroSlides} />
+      ) : (
+        <section className="relative bg-bg-primary-dark text-text-on-dark pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden">
+          <div className="container-mvm relative z-10">
+            <div className="max-w-3xl">
+              <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-4">MVM FOX</p>
+              <h1 className="text-display md:text-[4.5rem] font-bold tracking-tight leading-[1.05] mb-6">
+                Premium Services.<br /><span className="text-accent">Exceptional Quality.</span>
+              </h1>
+              <p className="text-body-lg text-text-on-dark-secondary max-w-xl mb-8">
+                From world-class catering to curated products and professional services.
+              </p>
             </div>
           </div>
-        </div>
-        {hero.imageUrl && (
-          <Image
-            src={hero.imageUrl}
-            alt=""
-            fill
-            sizes="50vw"
-            priority
-            className="object-cover opacity-20 pointer-events-none"
-          />
-        )}
-        {!hero.imageUrl && (
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-accent/5 to-transparent pointer-events-none" />
-        )}
-      </section>
+        </section>
+      )}
 
       {/* ─── Services Preview (Light) — DB: live services ─── */}
       <ScrollReveal>

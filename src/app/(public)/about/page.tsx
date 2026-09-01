@@ -28,7 +28,7 @@ export default function AboutPage() {
             how you deliver it.
           </p>
           <p className="text-body-lg text-text-secondary mb-6">
-            From our catering arm, Velvet Catering, to our curated product
+            From our catering arm, Velvet Fox, to our curated product
             shop and professional services, every touchpoint is designed with
             care, attention to detail, and an unwavering commitment to quality.
           </p>

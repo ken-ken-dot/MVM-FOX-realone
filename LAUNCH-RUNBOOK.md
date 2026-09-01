@@ -49,7 +49,7 @@ The seed script populates the database with demo content for review:
 - **8 products** across 3 categories (Gourmet Meals, Desserts, Platters) — all Published with images
 - **6 services** across 3 categories (Event Planning, Catering, Private Dining) — all Active with images
 - **3 catering menus** with 4 packages (Corporate, Wedding, Private Dining)
-- **1 brand** (Velvet Catering) with cover image
+- **1 brand** (Velvet Fox) with cover image
 - **3 testimonials**, **3 homepage sections**, **4 catering event types**
 - **20 media records** — all flagged `isPlaceholder=true`
 - **1 admin user**: `admin@mvmfox.com` / `admin123` (SUPER_ADMIN)

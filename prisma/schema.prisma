@@ -152,10 +152,14 @@ model ProductCategory {
   slug          String    @unique
   name          String
   description   String?
+  icon          String?
   sortOrder     Int       @default(0)
+  parentId      String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  parent        ProductCategory?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children      ProductCategory[] @relation("CategoryTree")
   products      Product[]
 }
 
@@ -165,6 +169,8 @@ model Product {
   name            String
   shortDescription String
   description     String
+  story           String?
+  specs           Json?
   price           Decimal         @db.Decimal(10, 2)
   compareAtPrice  Decimal?        @db.Decimal(10, 2)
   sku             String?
@@ -172,6 +178,7 @@ model Product {
   status          ProductStatus   @default(DRAFT)
   isActive        Boolean         @default(true)
   sortOrder       Int             @default(0)
+  productType     String          @default("physical")
   brandId         String?
   categoryId      String?
   createdAt       DateTime        @default(now())

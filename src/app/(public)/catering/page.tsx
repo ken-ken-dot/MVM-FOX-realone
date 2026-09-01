@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { UtensilsCrossed, ArrowRight } from "lucide-react";
+import { UtensilsCrossed, ArrowRight, Heart, Building2, Cake, Flame } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import { PageHero } from "@/components/sections/page-hero";
 
+const iconMap: Record<string, React.ElementType> = {
+  heart: Heart,
+  building: Building2,
+  cake: Cake,
+  flame: Flame,
+};
+
 export const metadata: Metadata = {
   title: "Catering",
   description:
-    "Premium catering services from Velvet Catering under MVM FOX. Events, weddings, corporate functions.",
+    "Premium catering services from Velvet Fox under MVM FOX. Events, weddings, corporate functions.",
 };
 
 async function getCateringData() {
@@ -66,9 +73,14 @@ export default async function CateringPage() {
                   key={event.id}
                   className="rounded-lg border border-border-subtle bg-white p-6 text-center card-interactive"
                 >
-                  {event.icon && (
-                    <span className="text-3xl mb-3 block">{event.icon}</span>
-                  )}
+                  {event.icon && (() => {
+                    const EventIcon = iconMap[event.icon];
+                    return EventIcon ? (
+                      <div className="inline-flex p-3 rounded-xl bg-accent/10 mb-3">
+                        <EventIcon size={28} className="text-accent" />
+                      </div>
+                    ) : null;
+                  })()}
                   <h3 className="text-body font-semibold">{event.name}</h3>
                   {event.description && (
                     <p className="text-body-sm text-text-secondary mt-1">
