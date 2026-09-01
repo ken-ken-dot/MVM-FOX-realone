@@ -8,6 +8,7 @@ import {
   Star,
   Phone,
 } from "lucide-react";
+import { ScrollReveal } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 
@@ -166,6 +167,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── Services Preview (Light) — DB: live services ─── */}
+      <ScrollReveal>
       <section className="section-padding bg-bg-primary-light">
         <div className="container-mvm">
           <div className="flex items-end justify-between mb-12">
@@ -199,7 +201,7 @@ export default async function HomePage() {
                 <Link
                   key={service.id}
                   href={`/services/${service.slug}`}
-                  className="group rounded-lg border border-border-subtle bg-white p-6 hover:shadow-md transition-shadow"
+                  className="group rounded-lg border border-border-subtle bg-white p-6 card-interactive"
                 >
                   {service.category && (
                     <p className="text-caption text-accent font-medium mb-2">
@@ -227,8 +229,10 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
       {/* ─── Products Preview (Dark) — DB: live products ─── */}
+      <ScrollReveal>
       <section className="section-padding bg-bg-primary-dark text-text-on-dark">
         <div className="container-mvm">
           <div className="flex items-end justify-between mb-12">
@@ -262,7 +266,7 @@ export default async function HomePage() {
                 <Link
                   key={product.id}
                   href={`/shop/${product.slug}`}
-                  className="group rounded-lg border border-border-dark bg-surface-card-dark p-5 hover:border-accent/30 transition-colors"
+                  className="group rounded-lg border border-border-dark bg-surface-card-dark p-5 card-interactive"
                 >
                   <div className="aspect-square rounded-md bg-bg-primary-dark-elevated mb-4 flex items-center justify-center">
                     {product.images[0] ? (
@@ -298,8 +302,10 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
       {/* ─── Catering CTA (Light, editorial split) — CMS: catering_cta ─── */}
+      <ScrollReveal>
       <section className="section-padding bg-bg-primary-light">
         <div className="container-mvm">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -349,9 +355,11 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
       {/* ─── Testimonials (Dark) — DB: live testimonials ─── */}
       {testimonials.length > 0 && (
+      <ScrollReveal>
         <section className="section-padding bg-bg-primary-dark text-text-on-dark">
           <div className="container-mvm">
             <div className="text-center mb-12">
@@ -395,10 +403,12 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+      </ScrollReveal>
       )}
 
       {/* ─── Brands (Light) — DB: live brands ─── */}
       {brands.length > 0 && (
+      <ScrollReveal>
         <section className="section-padding bg-bg-primary-light">
           <div className="container-mvm text-center">
             <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
@@ -412,7 +422,7 @@ export default async function HomePage() {
                 <Link
                   key={brand.id}
                   href={`/brands/${brand.slug}`}
-                  className="group rounded-lg border border-border-subtle bg-white px-8 py-6 hover:shadow-md transition-shadow"
+                  className="group rounded-lg border border-border-subtle bg-white px-8 py-6 card-interactive"
                 >
                   <h3 className="text-h4 font-semibold group-hover:text-accent transition-colors">
                     {brand.name}
@@ -427,9 +437,11 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+      </ScrollReveal>
       )}
 
       {/* ─── Final CTA (Dark) — CMS: final_cta ─── */}
+      <ScrollReveal>
       <section className="section-padding bg-bg-primary-dark text-text-on-dark">
         <div className="container-mvm text-center">
           <h2 className="text-h1 md:text-display font-bold tracking-tight mb-4">
@@ -456,6 +468,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
     </div>
   );
 }

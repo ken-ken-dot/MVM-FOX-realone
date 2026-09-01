@@ -5,6 +5,7 @@ import { ShoppingBag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import { PageHero } from "@/components/sections/page-hero";
+import { ScrollReveal } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Shop",
@@ -62,6 +63,7 @@ export default async function ShopPage() {
             </div>
           )}
 
+          <ScrollReveal>
           {products.length === 0 ? (
             <div className="text-center py-20">
               <ShoppingBag
@@ -81,7 +83,7 @@ export default async function ShopPage() {
                   <Link
                     key={product.id}
                     href={`/shop/${product.slug}`}
-                    className="group rounded-lg border border-border-subtle bg-white overflow-hidden hover:shadow-md transition-shadow"
+                    className="group rounded-lg border border-border-subtle bg-white overflow-hidden card-interactive"
                   >
                     <div className="relative aspect-square bg-surface-neutral overflow-hidden">
                       {primaryImage ? (
@@ -127,6 +129,7 @@ export default async function ShopPage() {
               })}
             </div>
           )}
+          </ScrollReveal>
         </div>
       </section>
     </div>

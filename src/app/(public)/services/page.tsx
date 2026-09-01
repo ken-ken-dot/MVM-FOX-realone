@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Briefcase, ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { PageHero } from "@/components/sections/page-hero";
+import { ScrollReveal } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -63,6 +64,7 @@ export default async function ServicesPage() {
             </div>
           )}
 
+          <ScrollReveal>
           {services.length === 0 ? (
             <div className="text-center py-20">
               <Briefcase size={48} className="mx-auto text-text-tertiary mb-4" />
@@ -77,7 +79,7 @@ export default async function ServicesPage() {
                 <Link
                   key={service.id}
                   href={`/services/${service.slug}`}
-                  className="group rounded-lg border border-border-subtle bg-white p-6 hover:shadow-md transition-shadow"
+                  className="group rounded-lg border border-border-subtle bg-white p-6 card-interactive"
                 >
                   {service.category && (
                     <p className="text-caption text-accent font-medium mb-2">
@@ -97,6 +99,7 @@ export default async function ServicesPage() {
               ))}
             </div>
           )}
+          </ScrollReveal>
         </div>
       </section>
     </div>

@@ -190,7 +190,7 @@ export default async function ServiceDetailPage({ params }: Props) {
                 <Link
                   key={rs.id}
                   href={`/services/${rs.slug}`}
-                  className="group rounded-lg border border-border-subtle bg-white p-6 hover:shadow-md transition-shadow"
+                  className="group rounded-lg border border-border-subtle bg-white p-6 card-interactive"
                 >
                   <h3 className="text-h4 font-semibold mb-2 group-hover:text-accent transition-colors">
                     {rs.title}

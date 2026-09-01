@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +26,7 @@ interface OptimizedImageProps {
 
 /**
  * Optimized image component wrapping Next.js <Image>.
- * Handles responsive sizing, lazy loading, and modern format delivery.
+ * Handles responsive sizing, lazy loading, smooth fade-in, and modern format delivery.
  *
  * Usage:
  *   <OptimizedImage src="..." alt="..." fill objectFit="cover" />
@@ -41,37 +44,54 @@ export function OptimizedImage({
   objectFit = "cover",
   aspectRatio,
 }: OptimizedImageProps) {
+  const [loaded, setLoaded] = useState(false);
+
   // Default responsive sizes if not provided
-  const responsiveSizes = sizes || (
-    fill
+  const responsiveSizes =
+    sizes ||
+    (fill
       ? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-      : undefined
-  );
+      : undefined);
+
+  const containerClass = cn("img-loading overflow-hidden", className);
 
   if (fill) {
     return (
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes={responsiveSizes}
-        priority={priority}
-        className={cn("object-cover", className)}
-        style={{ objectFit }}
-      />
+      <div
+        className={containerClass}
+        data-loaded={loaded ? "true" : "false"}
+        style={aspectRatio ? { aspectRatio } : undefined}
+      >
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          sizes={responsiveSizes}
+          priority={priority}
+          className="object-cover"
+          style={{ objectFit }}
+          onLoad={() => setLoaded(true)}
+        />
+      </div>
     );
   }
 
   return (
-    <Image
-      src={src}
-      alt={alt}
-      width={width || 800}
-      height={height || 600}
-      sizes={responsiveSizes}
-      priority={priority}
-      className={cn(className)}
-      style={{ objectFit }}
-    />
+    <div
+      className={containerClass}
+      data-loaded={loaded ? "true" : "false"}
+      style={aspectRatio ? { aspectRatio } : undefined}
+    >
+      <Image
+        src={src}
+        alt={alt}
+        width={width || 800}
+        height={height || 600}
+        sizes={responsiveSizes}
+        priority={priority}
+        style={{ objectFit }}
+        onLoad={() => setLoaded(true)}
+      />
+    </div>
   );
 }

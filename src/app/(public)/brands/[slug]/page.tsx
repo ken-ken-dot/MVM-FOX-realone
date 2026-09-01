@@ -100,7 +100,7 @@ export default async function BrandDetailPage({ params }: Props) {
                 <Link
                   key={product.id}
                   href={`/shop/${product.slug}`}
-                  className="group rounded-lg border border-border-subtle bg-white p-4 hover:shadow-md transition-shadow"
+                  className="group rounded-lg border border-border-subtle bg-white p-4 card-interactive"
                 >
                   <h3 className="text-body font-semibold group-hover:text-accent transition-colors">
                     {product.name}

@@ -228,3 +228,87 @@ body {
 .section-dark .text-secondary {
   color: var(--text-on-dark-secondary);
 }
+
+/* ─── Scroll Reveal ─── */
+.scroll-reveal {
+  opacity: 0;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translate(0, 0) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ─── Image Loading ─── */
+.img-loading {
+  background: var(--surface-neutral);
+  transition: opacity 0.4s ease-out;
+}
+
+.img-loading[data-loaded="true"] {
+  background: transparent;
+}
+
+.img-loading img {
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+}
+
+.img-loading[data-loaded="true"] img {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .img-loading img {
+    transition: none;
+  }
+}
+
+/* ─── Add-to-Cart Button Feedback ─── */
+@keyframes cart-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.cart-pulse {
+  animation: cart-pulse 0.3s ease-out;
+}
+
+@keyframes cart-count-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.cart-count-bump {
+  animation: cart-count-bump 0.35s ease-out;
+}
+
+/* ─── Smooth Card Hover ─── */
+.card-interactive {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-raised);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-interactive:hover {
+    transform: none;
+  }
+}

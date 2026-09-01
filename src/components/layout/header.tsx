@@ -19,6 +19,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [cartBump, setCartBump] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -51,7 +52,17 @@ export function Header() {
     fetchCartCount();
     // Re-fetch on focus (e.g., after adding to cart)
     window.addEventListener("focus", fetchCartCount);
-    return () => window.removeEventListener("focus", fetchCartCount);
+    // Re-fetch on custom cart-updated event
+    const handleCartUpdate = () => {
+      fetchCartCount();
+      setCartBump(true);
+      setTimeout(() => setCartBump(false), 400);
+    };
+    window.addEventListener("cart-updated", handleCartUpdate);
+    return () => {
+      window.removeEventListener("focus", fetchCartCount);
+      window.removeEventListener("cart-updated", handleCartUpdate);
+    };
   }, []);
 
   // Lock body scroll when mobile nav is open
@@ -114,7 +125,7 @@ export function Header() {
             >
               <ShoppingBag size={20} />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-accent text-white text-[10px] font-bold flex items-center justify-center">
+                <span className={`absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-accent text-white text-[10px] font-bold flex items-center justify-center ${cartBump ? "cart-count-bump" : ""}`}>
                   {cartCount > 9 ? "9+" : cartCount}
                 </span>
               )}

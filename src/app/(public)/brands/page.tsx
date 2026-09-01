@@ -49,7 +49,7 @@ export default async function BrandsPage() {
                 <Link
                   key={brand.id}
                   href={`/brands/${brand.slug}`}
-                  className="group rounded-lg border border-border-subtle bg-white overflow-hidden hover:shadow-md transition-shadow"
+                  className="group rounded-lg border border-border-subtle bg-white overflow-hidden card-interactive"
                 >
                   {brand.coverImageUrl && (
                     <div className="relative aspect-[16/9] overflow-hidden">

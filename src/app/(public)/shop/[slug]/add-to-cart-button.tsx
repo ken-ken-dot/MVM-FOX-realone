@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ShoppingBag, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AddToCartButtonProps {
   productId: string;
@@ -11,10 +12,12 @@ interface AddToCartButtonProps {
 export function AddToCartButton({ productId, disabled }: AddToCartButtonProps) {
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
+  const [pulse, setPulse] = useState(false);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = useCallback(async () => {
     if (disabled || loading) return;
     setLoading(true);
+    setPulse(true);
 
     try {
       const res = await fetch("/api/cart", {
@@ -25,20 +28,29 @@ export function AddToCartButton({ productId, disabled }: AddToCartButtonProps) {
 
       if (res.ok) {
         setAdded(true);
-        setTimeout(() => setAdded(false), 2000);
+        // Dispatch custom event so header can re-fetch cart count
+        window.dispatchEvent(new Event("cart-updated"));
+        setTimeout(() => setAdded(false), 2500);
       }
     } catch {
-      // Silently fail — could show toast in future
+      // Silently fail
     } finally {
       setLoading(false);
+      setTimeout(() => setPulse(false), 350);
     }
-  };
+  }, [productId, disabled, loading]);
 
   return (
     <button
       onClick={handleAddToCart}
       disabled={disabled || loading}
-      className="flex items-center justify-center h-12 w-full rounded-md bg-bg-primary-dark text-text-on-dark text-body font-medium hover:bg-bg-primary-dark-elevated transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      className={cn(
+        "flex items-center justify-center h-12 w-full rounded-md text-body font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
+        added
+          ? "bg-success text-white"
+          : "bg-bg-primary-dark text-text-on-dark hover:bg-bg-primary-dark-elevated",
+        pulse && "cart-pulse",
+      )}
     >
       {added ? (
         <>

@@ -9,3 +9,5 @@ export { EmptyState } from "./empty-state";
 export { LoadingSpinner, LoadingPage, LoadingCard } from "./loading";
 export { ToastProvider, useToast } from "./toast";
 export { OptimizedImage } from "./optimized-image";
+export { Pagination } from "./pagination";
+export { ScrollReveal } from "./scroll-reveal";

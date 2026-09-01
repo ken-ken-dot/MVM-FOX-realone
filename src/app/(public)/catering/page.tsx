@@ -64,7 +64,7 @@ export default async function CateringPage() {
               {events.map((event) => (
                 <div
                   key={event.id}
-                  className="rounded-lg border border-border-subtle bg-white p-6 text-center hover:shadow-md transition-shadow"
+                  className="rounded-lg border border-border-subtle bg-white p-6 text-center card-interactive"
                 >
                   {event.icon && (
                     <span className="text-3xl mb-3 block">{event.icon}</span>

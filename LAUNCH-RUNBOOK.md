@@ -18,8 +18,8 @@ cp .env.example .env   # then edit with real values
 # 5. Run database migrations
 npx prisma migrate deploy
 
-# 6. Seed the admin user (creates admin@mvmfox.com / admin123)
-npx tsx -e "import { seedAdminUser } from './src/lib/auth'; seedAdminUser().then(() => process.exit(0))"
+# 6. Seed the database with demo content (admin user, products, services, catering, brands)
+npm run db:seed
 
 # 7. Start the dev server
 npm run dev
@@ -43,6 +43,20 @@ npm run dev
 - Navigate to **/admin/login**
 - Email: `admin@mvmfox.com` / Password: `admin123`
 - You'll land on the **Dashboard** with stats cards and recent activity
+
+### Seed Data (pre-loaded)
+The seed script populates the database with demo content for review:
+- **8 products** across 3 categories (Gourmet Meals, Desserts, Platters) — all Published with images
+- **6 services** across 3 categories (Event Planning, Catering, Private Dining) — all Active with images
+- **3 catering menus** with 4 packages (Corporate, Wedding, Private Dining)
+- **1 brand** (Velvet Catering) with cover image
+- **3 testimonials**, **3 homepage sections**, **4 catering event types**
+- **20 media records** — all flagged `isPlaceholder=true`
+- **1 admin user**: `admin@mvmfox.com` / `admin123` (SUPER_ADMIN)
+
+All seed data uses Unsplash stock photos tagged as placeholder. Use the Media Library's **Stock/Placeholder** filter to see exactly which images need replacing before launch.
+
+To re-seed from scratch: `npm run db:seed:clear`
 
 ### Step 2: Add Your First Product
 1. Go to **Products** in the sidebar
