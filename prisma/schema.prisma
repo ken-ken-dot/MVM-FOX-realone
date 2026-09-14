@@ -153,6 +153,7 @@ model ProductCategory {
   name          String
   description   String?
   icon          String?
+  imageUrl      String?
   sortOrder     Int       @default(0)
   parentId      String?
   createdAt     DateTime  @default(now())
@@ -179,6 +180,9 @@ model Product {
   isActive        Boolean         @default(true)
   sortOrder       Int             @default(0)
   productType     String          @default("physical")
+  tags            String[]        @default([])
+  platform        String?
+  licenseType     String?
   brandId         String?
   categoryId      String?
   createdAt       DateTime        @default(now())
@@ -312,6 +316,8 @@ model CateringPackage {
   description     String?
   pricePerGuest   Decimal?          @db.Decimal(10, 2)
   minimumGuests   Int?
+  tier            String?
+  eventTypeId     String?
   imageUrl        String?
   includes        Json?
   isActive        Boolean           @default(true)
@@ -320,6 +326,7 @@ model CateringPackage {
   updatedAt       DateTime          @updatedAt
 
   menu            CateringMenu      @relation(fields: [menuId], references: [id])
+  eventType       CateringEvent?    @relation(fields: [eventTypeId], references: [id])
   requests        CateringRequest[]
 }
 
@@ -333,6 +340,7 @@ model CateringEvent {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  packages      CateringPackage[]
   requests      CateringRequest[]
 }
 

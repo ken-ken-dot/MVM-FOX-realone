@@ -13,7 +13,7 @@ const contentManagerRoutes = [
   "/admin/media",
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check if this is an admin route

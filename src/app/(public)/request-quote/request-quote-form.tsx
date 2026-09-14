@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { quoteRequestSchema, type QuoteRequestInput } from "@/validators";
-import { Input, Textarea, Select, Button } from "@/components/ui";
+import { Input, Textarea, Select, Button, AmbientBackground, AmbientIconField } from "@/components/ui";
 import { PageHero } from "@/components/sections/page-hero";
 import { CheckCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -101,8 +101,10 @@ export function RequestQuoteForm() {
             { label: "Request Quote" },
           ]}
         />
-        <section className="section-padding bg-bg-primary-light">
-          <div className="container-mvm max-w-lg text-center">
+        <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+          <AmbientBackground icons="mixed" variant="light" />
+          <AmbientIconField variant="light" density="low" />
+          <div className="container-mvm max-w-lg text-center relative z-10">
             <CheckCircle size={64} className="mx-auto text-success mb-6" />
             <h2 className="text-h2 font-bold mb-4">Thank You!</h2>
             {referenceCode && (
@@ -136,8 +138,10 @@ export function RequestQuoteForm() {
         ]}
       />
 
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm max-w-2xl">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="mixed" variant="light" />
+        <AmbientIconField variant="light" density="low" />
+        <div className="container-mvm max-w-2xl relative z-10">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <Input
@@ -209,6 +213,13 @@ export function RequestQuoteForm() {
               placeholder="Tell us about your event, requirements, and any special requests..."
               error={errors.description?.message}
               {...register("description")}
+            />
+
+            <Textarea
+              label="Additional Notes (optional)"
+              placeholder="Any extra details or special instructions..."
+              maxLength={500}
+              {...register("notes")}
             />
 
             {error && (

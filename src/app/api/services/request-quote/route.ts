@@ -6,7 +6,7 @@ import { createNotification } from "@/lib/notifications";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, phone, companyName, serviceId, location, description, eventDate, guestCount } = body;
+    const { name, email, phone, companyName, serviceId, location, description, eventDate, guestCount, notes } = body;
 
     if (!name || !email || !serviceId || !description) {
       return NextResponse.json(
@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
         companyName,
         location,
         description,
+        notes: notes || null,
         eventDetails: {
           eventDate: eventDate || null,
           guestCount: guestCount || null,

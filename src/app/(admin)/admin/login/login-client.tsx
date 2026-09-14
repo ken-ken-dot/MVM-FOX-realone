@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, LogIn } from "lucide-react";
-import { Button } from "@/components/ui";
+import { Button, AmbientIconField } from "@/components/ui";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "@/validators";
@@ -46,7 +46,8 @@ export function LoginPageClient() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-primary-dark p-4">
+    <div className="relative min-h-screen flex items-center justify-center bg-bg-primary-dark p-4">
+      <AmbientIconField variant="dark" density="medium" />
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">

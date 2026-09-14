@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ShoppingBag, Trash2, ArrowRight, Plus, Minus } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { PageHero } from "@/components/sections/page-hero";
-import { Button, EmptyState } from "@/components/ui";
+import { Button, EmptyState, AmbientBackground, AmbientIconField } from "@/components/ui";
 
 interface CartItem {
   id: string;
@@ -88,8 +88,10 @@ export default function CartPage() {
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Cart" }]}
       />
 
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm max-w-4xl">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="tech" variant="light" />
+        <AmbientIconField variant="light" density="low" />
+        <div className="container-mvm max-w-4xl relative z-10">
           {loading ? (
             <div className="text-center py-20">
               <div className="animate-spin h-6 w-6 border-2 border-accent border-t-transparent rounded-full mx-auto" />

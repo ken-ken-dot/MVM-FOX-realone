@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, Check, HelpCircle } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { PageHero } from "@/components/sections/page-hero";
+import { AmbientBackground } from "@/components/ui";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -64,7 +65,8 @@ export default async function ServiceDetailPage({ params }: Props) {
       />
 
       {/* Main content */}
-      <section className="section-padding bg-bg-primary-light">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="tech" variant="light" />
         <div className="container-mvm">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Content */}
@@ -150,7 +152,8 @@ export default async function ServiceDetailPage({ params }: Props) {
 
       {/* FAQs */}
       {service.faqs.length > 0 && (
-        <section className="section-padding bg-bg-primary-dark text-text-on-dark">
+        <section className="relative section-padding bg-bg-primary-dark text-text-on-dark overflow-hidden">
+          <AmbientBackground icons="tech" variant="dark" />
           <div className="container-mvm">
             <h2 className="text-h2 font-bold tracking-tight mb-8">
               Frequently Asked Questions
@@ -180,7 +183,8 @@ export default async function ServiceDetailPage({ params }: Props) {
 
       {/* Cross-sell */}
       {relatedServices.length > 0 && (
-        <section className="section-padding bg-bg-primary-light">
+        <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+          <AmbientBackground icons="tech" variant="light" />
           <div className="container-mvm">
             <h2 className="text-h2 font-bold tracking-tight mb-8">
               You might also need...

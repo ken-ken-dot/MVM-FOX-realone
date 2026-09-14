@@ -7,8 +7,11 @@ import {
   Briefcase,
   Star,
   Phone,
+  Monitor,
+  Code,
+  Wifi,
 } from "lucide-react";
-import { ScrollReveal } from "@/components/ui";
+import { ScrollReveal, AmbientBackground } from "@/components/ui";
 import { HeroSlider } from "@/components/sections/hero-slider";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
@@ -143,8 +146,9 @@ export default async function HomePage() {
 
       {/* ─── Services Preview (Light) — DB: live services ─── */}
       <ScrollReveal>
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="tech" variant="light" />
+        <div className="container-mvm relative z-10">
           <div className="flex items-end justify-between mb-12">
             <div>
               <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
@@ -208,8 +212,9 @@ export default async function HomePage() {
 
       {/* ─── Products Preview (Dark) — DB: live products ─── */}
       <ScrollReveal>
-      <section className="section-padding bg-bg-primary-dark text-text-on-dark">
-        <div className="container-mvm">
+      <section className="relative section-padding bg-bg-primary-dark text-text-on-dark overflow-hidden">
+        <AmbientBackground icons="tech" variant="dark" />
+        <div className="container-mvm relative z-10">
           <div className="flex items-end justify-between mb-12">
             <div>
               <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
@@ -243,17 +248,20 @@ export default async function HomePage() {
                   href={`/shop/${product.slug}`}
                   className="group rounded-lg border border-border-dark bg-surface-card-dark p-5 card-interactive"
                 >
-                  <div className="aspect-square rounded-md bg-bg-primary-dark-elevated mb-4 flex items-center justify-center">
+                  <div className="aspect-square rounded-md bg-bg-primary-dark-elevated mb-4 flex items-center justify-center overflow-hidden relative">
                     {product.images[0] ? (
                       <Image
                         src={product.images[0].url}
                         alt={product.images[0].alt || product.name}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                        className="object-cover rounded-md"
+                        className="object-cover rounded-md transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <ShoppingBag size={32} className="text-text-on-dark-secondary" />
+                      <div className="flex flex-col items-center gap-2">
+                        <ShoppingBag size={32} className="text-text-on-dark-secondary" />
+                        <span className="text-caption text-text-on-dark-secondary">No image</span>
+                      </div>
                     )}
                   </div>
                   <h3 className="text-body font-semibold mb-1 group-hover:text-accent transition-colors">
@@ -281,8 +289,9 @@ export default async function HomePage() {
 
       {/* ─── Catering CTA (Light, editorial split) — CMS: catering_cta ─── */}
       <ScrollReveal>
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="catering" variant="light" />
+        <div className="container-mvm relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
@@ -322,8 +331,9 @@ export default async function HomePage() {
                   className="object-cover"
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
                   <UtensilsCrossed size={64} className="text-accent/30" />
+                  <span className="text-body-sm text-text-on-dark-secondary">Catering image coming soon</span>
                 </div>
               )}
             </div>
@@ -335,8 +345,9 @@ export default async function HomePage() {
       {/* ─── Testimonials (Dark) — DB: live testimonials ─── */}
       {testimonials.length > 0 && (
       <ScrollReveal>
-        <section className="section-padding bg-bg-primary-dark text-text-on-dark">
-          <div className="container-mvm">
+        <section className="relative section-padding bg-bg-primary-dark text-text-on-dark overflow-hidden">
+          <AmbientBackground icons="mixed" variant="dark" />
+          <div className="container-mvm relative z-10">
             <div className="text-center mb-12">
               <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
                 Testimonials
@@ -384,31 +395,56 @@ export default async function HomePage() {
       {/* ─── Brands (Light) — DB: live brands ─── */}
       {brands.length > 0 && (
       <ScrollReveal>
-        <section className="section-padding bg-bg-primary-light">
-          <div className="container-mvm text-center">
-            <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
-              Our Brands
-            </p>
-            <h2 className="text-h1 font-bold tracking-tight mb-12">
-              The MVM FOX Family
-            </h2>
-            <div className="flex flex-wrap justify-center gap-8">
+        <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+          <AmbientBackground icons="tech" variant="light" />
+          <div className="container-mvm relative z-10">
+            <div className="text-center mb-12">
+              <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
+                Our Brands
+              </p>
+              <h2 className="text-h1 font-bold tracking-tight">
+                The MVM FOX Family
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {brands.map((brand) => (
                 <Link
                   key={brand.id}
                   href={`/brands/${brand.slug}`}
-                  className="group rounded-lg border border-border-subtle bg-white px-8 py-6 card-interactive"
+                  className="group rounded-lg border border-border-subtle bg-white overflow-hidden card-interactive"
                 >
-                  <h3 className="text-h4 font-semibold group-hover:text-accent transition-colors">
-                    {brand.name}
-                  </h3>
-                  {brand.tagline && (
-                    <p className="text-body-sm text-text-secondary mt-1">
-                      {brand.tagline}
-                    </p>
+                  {brand.coverImageUrl && (
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      <Image
+                        src={brand.coverImageUrl}
+                        alt={`${brand.name} brand image`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
                   )}
+                  <div className="p-5">
+                    <h3 className="text-h4 font-semibold group-hover:text-accent transition-colors">
+                      {brand.name}
+                    </h3>
+                    {brand.tagline && (
+                      <p className="text-body-sm text-text-secondary mt-1">
+                        {brand.tagline}
+                      </p>
+                    )}
+                  </div>
                 </Link>
               ))}
+            </div>
+            <div className="text-center mt-10">
+              <Link
+                href="/brands"
+                className="inline-flex items-center gap-2 text-body-sm font-medium text-accent hover:text-accent-hover transition-colors"
+              >
+                View all brands
+                <ArrowRight size={16} />
+              </Link>
             </div>
           </div>
         </section>
@@ -417,8 +453,9 @@ export default async function HomePage() {
 
       {/* ─── Final CTA (Dark) — CMS: final_cta ─── */}
       <ScrollReveal>
-      <section className="section-padding bg-bg-primary-dark text-text-on-dark">
-        <div className="container-mvm text-center">
+      <section className="relative section-padding bg-bg-primary-dark text-text-on-dark overflow-hidden">
+        <AmbientBackground icons="mixed" variant="dark" />
+        <div className="container-mvm text-center relative z-10">
           <h2 className="text-h1 md:text-display font-bold tracking-tight mb-4">
             {finalCta.title || defaultFinalCta.title}
           </h2>

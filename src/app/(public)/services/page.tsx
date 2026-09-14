@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Briefcase, ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { PageHero } from "@/components/sections/page-hero";
-import { ScrollReveal } from "@/components/ui";
+import { ScrollReveal, AmbientBackground } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -39,10 +40,15 @@ export default async function ServicesPage() {
         title="Our Services"
         subtitle="Professional solutions tailored to your needs. From initial consultation to final delivery."
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Services" }]}
+        backgroundImage={{
+          src: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1920&q=80",
+          alt: "Professional team collaborating on business solutions",
+        }}
       />
 
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="tech" variant="light" />
+        <div className="container-mvm relative z-10">
           {/* Category filter — rendered as anchor links, works without JS */}
           {categories.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-10">
@@ -79,8 +85,20 @@ export default async function ServicesPage() {
                 <Link
                   key={service.id}
                   href={`/services/${service.slug}`}
-                  className="group rounded-lg border border-border-subtle bg-white p-6 card-interactive"
+                  className="group rounded-lg border border-border-subtle bg-white overflow-hidden card-interactive"
                 >
+                  {service.imageUrl && (
+                    <div className="relative aspect-[16/9] overflow-hidden">
+                      <Image
+                        src={service.imageUrl}
+                        alt={service.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6">
                   {service.category && (
                     <p className="text-caption text-accent font-medium mb-2">
                       {service.category.name}
@@ -95,6 +113,7 @@ export default async function ServicesPage() {
                   <span className="inline-flex items-center gap-1.5 text-body-sm font-medium text-accent group-hover:gap-2.5 transition-all">
                     Learn more <ArrowRight size={14} />
                   </span>
+                  </div>
                 </Link>
               ))}
             </div>

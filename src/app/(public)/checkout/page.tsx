@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { checkoutSchema, type CheckoutInput } from "@/validators";
 import type { Resolver } from "react-hook-form";
-import { Input, Textarea, Button, EmptyState } from "@/components/ui";
+import { Input, Textarea, Button, EmptyState, AmbientBackground, AmbientIconField } from "@/components/ui";
 import { PageHero } from "@/components/sections/page-hero";
 import { formatCurrency } from "@/lib/utils";
 import { ShoppingBag } from "lucide-react";
@@ -31,10 +31,12 @@ export default function CheckoutPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<CheckoutInput>({
     resolver: zodResolver(checkoutSchema) as Resolver<CheckoutInput>,
   });
+  const notesValue = watch("notes") || "";
 
   useEffect(() => {
     const loadCart = async () => {
@@ -90,8 +92,10 @@ export default function CheckoutPage() {
             { label: "Checkout" },
           ]}
         />
-        <section className="section-padding bg-bg-primary-light">
-          <div className="container-mvm max-w-3xl text-center py-20">
+        <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+          <AmbientBackground icons="tech" variant="light" />
+          <AmbientIconField variant="light" density="low" />
+          <div className="container-mvm max-w-3xl text-center py-20 relative z-10">
             <div className="animate-spin h-6 w-6 border-2 border-accent border-t-transparent rounded-full mx-auto" />
           </div>
         </section>
@@ -110,8 +114,10 @@ export default function CheckoutPage() {
             { label: "Checkout" },
           ]}
         />
-        <section className="section-padding bg-bg-primary-light">
-          <div className="container-mvm max-w-3xl">
+        <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+          <AmbientBackground icons="tech" variant="light" />
+          <AmbientIconField variant="light" density="low" />
+          <div className="container-mvm max-w-3xl relative z-10">
             <EmptyState
               title="Your cart is empty"
               description="Add some products before checking out."
@@ -141,8 +147,10 @@ export default function CheckoutPage() {
         ]}
       />
 
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm max-w-3xl">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="tech" variant="light" />
+        <AmbientIconField variant="light" density="low" />
+        <div className="container-mvm max-w-3xl relative z-10">
           {/* Order summary */}
           <div className="rounded-lg border border-border-subtle bg-white p-6 mb-8">
             <h2 className="text-h4 font-semibold mb-4">Order Summary</h2>
@@ -253,11 +261,17 @@ export default function CheckoutPage() {
               {...register("country")}
             />
 
-            <Textarea
-              label="Order Notes (optional)"
-              placeholder="Any special instructions..."
-              {...register("notes")}
-            />
+            <div>
+              <Textarea
+                label="Order Notes (optional)"
+                placeholder="Any special instructions..."
+                maxLength={500}
+                {...register("notes")}
+              />
+              <p className="text-caption text-text-tertiary mt-1 text-right">
+                {notesValue.length}/500 characters
+              </p>
+            </div>
 
             {error && (
               <div className="rounded-md bg-error/10 border border-error/20 p-4">

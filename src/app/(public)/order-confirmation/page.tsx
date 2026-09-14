@@ -4,6 +4,7 @@ import { CheckCircle, Package } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { PageHero } from "@/components/sections/page-hero";
+import { AmbientBackground } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Order Confirmation",
@@ -26,8 +27,9 @@ export default async function OrderConfirmationPage({ searchParams }: Props) {
             { label: "Order Confirmation" },
           ]}
         />
-        <section className="section-padding bg-bg-primary-light">
-          <div className="container-mvm max-w-lg text-center">
+        <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+          <AmbientBackground icons="mixed" variant="light" />
+          <div className="container-mvm max-w-lg text-center relative z-10">
             <Package size={64} className="mx-auto text-text-tertiary mb-6" />
             <h2 className="text-h2 font-bold mb-4">No Order Found</h2>
             <p className="text-body-lg text-text-secondary mb-6">
@@ -61,8 +63,9 @@ export default async function OrderConfirmationPage({ searchParams }: Props) {
             { label: "Order Confirmation" },
           ]}
         />
-        <section className="section-padding bg-bg-primary-light">
-          <div className="container-mvm max-w-lg text-center">
+        <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+          <AmbientBackground icons="mixed" variant="light" />
+          <div className="container-mvm max-w-lg text-center relative z-10">
             <Package size={64} className="mx-auto text-text-tertiary mb-6" />
             <h2 className="text-h2 font-bold mb-4">Order Not Found</h2>
             <p className="text-body-lg text-text-secondary">
@@ -84,8 +87,9 @@ export default async function OrderConfirmationPage({ searchParams }: Props) {
         ]}
       />
 
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm max-w-2xl">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="mixed" variant="light" />
+        <div className="container-mvm max-w-2xl relative z-10">
           <div className="text-center mb-8">
             <CheckCircle size={64} className="mx-auto text-success mb-6" />
             <h2 className="text-h2 font-bold mb-2">Thank You for Your Order!</h2>
@@ -158,6 +162,17 @@ export default async function OrderConfirmationPage({ searchParams }: Props) {
               </div>
             </div>
           </div>
+
+          {order.notes && (
+            <div className="rounded-lg border border-border-subtle bg-white p-6 mb-6">
+              <h3 className="text-body font-semibold mb-2">Your Order Notes</h3>
+              <div className="rounded-md bg-accent/5 border border-accent/10 p-4">
+                <p className="text-body-sm text-text-primary whitespace-pre-wrap">
+                  {order.notes}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link

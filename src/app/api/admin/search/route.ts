@@ -9,6 +9,31 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: NextRequest) {
   try {
     const q = request.nextUrl.searchParams.get("q");
+    const type = request.nextUrl.searchParams.get("type");
+
+    // Type-specific lookups for form dropdowns
+    if (type === "categories") {
+      const categories = await prisma.productCategory.findMany({
+        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        select: { id: true, name: true, slug: true, parentId: true },
+      });
+      return NextResponse.json({ categories });
+    }
+    if (type === "brands") {
+      const brands = await prisma.brand.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, name: true, slug: true },
+      });
+      return NextResponse.json({ brands });
+    }
+    if (type === "serviceCategories") {
+      const serviceCategories = await prisma.serviceCategory.findMany({
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, name: true, slug: true },
+      });
+      return NextResponse.json({ serviceCategories });
+    }
 
     if (!q || q.trim().length < 2) {
       return NextResponse.json({ results: {} });

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/utils";
 import { Badge, Card, EmptyState } from "@/components/ui";
@@ -53,6 +54,9 @@ export default async function AdminServiceRequestsPage() {
                   <th className="px-6 py-3 text-body-sm font-semibold text-text-secondary">
                     Date
                   </th>
+                  <th className="px-6 py-3 text-body-sm font-semibold text-text-secondary">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -77,6 +81,14 @@ export default async function AdminServiceRequestsPage() {
                     </td>
                     <td className="px-6 py-4 text-body-sm text-text-secondary">
                       {formatDateTime(req.createdAt)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link
+                        href={`/admin/services/requests/${req.id}`}
+                        className="text-body-sm text-accent hover:text-accent-hover transition-colors"
+                      >
+                        View
+                      </Link>
                     </td>
                   </tr>
                 ))}

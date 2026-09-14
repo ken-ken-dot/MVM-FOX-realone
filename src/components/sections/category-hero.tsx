@@ -1,0 +1,82 @@
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import Image from "next/image";
+
+interface CategoryHeroProps {
+  name: string;
+  description?: string | null;
+  /** Background image URL derived from the category's own data (e.g. first product's primary image) */
+  backgroundImage?: string;
+  breadcrumbs?: { label: string; href?: string }[];
+  className?: string;
+}
+
+export function CategoryHero({
+  name,
+  description,
+  backgroundImage,
+  breadcrumbs,
+  className,
+}: CategoryHeroProps) {
+  return (
+    <section
+      className={cn(
+        "relative pt-32 pb-16 md:pt-40 md:pb-20 mb-12 md:mb-16 overflow-hidden",
+        backgroundImage ? "min-h-[50vh] md:min-h-[55vh] flex items-end" : "",
+        "text-text-on-dark",
+        className,
+      )}
+    >
+      {/* Background image — derived from the category's own data */}
+      {backgroundImage && (
+        <>
+          <Image
+            src={backgroundImage}
+            alt={`${name} category`}
+            fill
+            sizes="100vw"
+            priority
+            className="object-cover"
+          />
+          {/* Dark gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-bg-primary-dark/95 via-bg-primary-dark/60 to-bg-primary-dark/30" />
+          {/* Subtle side gradient for depth */}
+          <div className="absolute inset-0 bg-gradient-to-r from-bg-primary-dark/40 to-transparent" />
+        </>
+      )}
+
+      {/* Content */}
+      <div className="container-mvm relative z-10" aria-label={`${name} category hero`}>
+        {breadcrumbs && breadcrumbs.length > 0 && (
+          <nav className="flex items-center gap-1.5 text-body-sm mb-6">
+            {breadcrumbs.map((crumb, idx) => (
+              <span key={crumb.label} className="flex items-center gap-1.5">
+                {idx > 0 && (
+                  <span className="text-text-on-dark-secondary">/</span>
+                )}
+                {crumb.href ? (
+                  <Link
+                    href={crumb.href}
+                    className="transition-colors text-text-on-dark-secondary hover:text-text-on-dark"
+                  >
+                    {crumb.label}
+                  </Link>
+                ) : (
+                  <span className="text-text-on-dark">{crumb.label}</span>
+                )}
+              </span>
+            ))}
+          </nav>
+        )}
+        <h1 className="text-h1 md:text-display font-bold tracking-tight">
+          {name}
+        </h1>
+        {description && (
+          <p className="mt-4 text-body-lg max-w-2xl text-text-on-dark-secondary">
+            {description}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}

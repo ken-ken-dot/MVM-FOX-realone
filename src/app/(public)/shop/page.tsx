@@ -5,7 +5,7 @@ import { Monitor, Code, UtensilsCrossed } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import { PageHero } from "@/components/sections/page-hero";
-import { ScrollReveal } from "@/components/ui";
+import { ScrollReveal, AmbientBackground } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Shop",
@@ -38,15 +38,36 @@ const categoryCards = [
 
 async function getRecentProducts() {
   try {
-    return await prisma.product.findMany({
-      where: { status: "PUBLISHED", isActive: true },
-      include: {
-        images: { where: { isPrimary: true }, take: 1 },
-        category: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 6,
+    // Get top-level category IDs to ensure cross-category mix
+    const topCategories = await prisma.productCategory.findMany({
+      where: { parentId: null },
+      orderBy: { sortOrder: "asc" },
     });
+    const catIds = topCategories.map((c) => c.id);
+
+    // Pull 2 products from each top-level category for a balanced mix
+    const perCategory = 2;
+    type ProductWithRelations = Awaited<ReturnType<typeof prisma.product.findMany>>[number] & { images: { url: string; alt: string | null }[]; category: { name: string } | null };
+    const allProducts: ProductWithRelations[] = [];
+
+    for (const catId of catIds) {
+      // Also include subcategories of this parent
+      const subs = await prisma.productCategory.findMany({ where: { parentId: catId } });
+      const ids = [catId, ...subs.map((s) => s.id)];
+
+      const products = await prisma.product.findMany({
+        where: { status: "PUBLISHED", isActive: true, categoryId: { in: ids } },
+        include: {
+          images: { where: { isPrimary: true }, take: 1 },
+          category: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: perCategory,
+      });
+      allProducts.push(...products);
+    }
+
+    return allProducts;
   } catch {
     return [];
   }
@@ -61,11 +82,16 @@ export default async function ShopPage() {
         title="Shop"
         subtitle="Explore our three product categories — each curated with the same attention to quality."
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Shop" }]}
+        backgroundImage={{
+          src: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&q=80",
+          alt: "Premium retail display showcasing curated products",
+        }}
       />
 
       {/* Category Chooser */}
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="tech" variant="light" />
+        <div className="container-mvm relative z-10">
           <ScrollReveal>
             <div className="text-center mb-12">
               <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
@@ -146,9 +172,9 @@ export default async function ShopPage() {
                         </div>
                         <div className="p-4">
                           {product.category && (
-                            <p className="text-caption text-accent font-medium mb-1">
+                            <span className="inline-flex h-5 px-2 rounded-full bg-accent/10 text-accent text-caption font-medium mb-1.5">
                               {product.category.name}
-                            </p>
+                            </span>
                           )}
                           <h3 className="text-body font-semibold mb-1 group-hover:text-accent transition-colors line-clamp-1">
                             {product.name}

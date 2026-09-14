@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Input, Button } from "@/components/ui";
+import { Input, Button, AmbientBackground, AmbientIconField } from "@/components/ui";
 import { PageHero } from "@/components/sections/page-hero";
 import { Package, ClipboardList, Briefcase, CheckCircle, Clock, AlertCircle } from "lucide-react";
 
@@ -89,8 +89,10 @@ export default function TrackPage() {
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Track" }]}
       />
 
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm max-w-2xl">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="mixed" variant="light" />
+        <AmbientIconField variant="light" density="low" />
+        <div className="container-mvm max-w-2xl relative z-10">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 mb-10">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <Input

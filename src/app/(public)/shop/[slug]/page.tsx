@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ShoppingBag, ArrowLeft, Monitor, Code, UtensilsCrossed } from "lucide-react";
+import { ShoppingBag, ArrowLeft, Monitor, Code, UtensilsCrossed, X, SlidersHorizontal, Search } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { PageHero } from "@/components/sections/page-hero";
-import { ScrollReveal } from "@/components/ui";
+import { CategoryHero } from "@/components/sections/category-hero";
+import { ScrollReveal, AmbientBackground, EmptyState } from "@/components/ui";
 import { AddToCartButton } from "./add-to-cart-button";
+import { CategoryFilters } from "./category-filters";
 
 const categoryIcons: Record<string, React.ElementType> = {
   electronics: Monitor,
@@ -15,26 +17,40 @@ const categoryIcons: Record<string, React.ElementType> = {
   "catering-shop": UtensilsCrossed,
 };
 
+// Filter options per category
+const electronicsTagFilters = ["Home", "Office", "Work", "Travel", "Gaming", "Creative"];
+const softwarePlatformFilters = ["Cross-platform", "Web", "macOS/Windows"];
+const softwareLicenseFilters = ["Subscription", "One-time"];
+const cateringTierFilters = ["Classic", "Premium", "Signature"];
+const cateringEventFilters = ["Corporate", "Wedding", "Private Event", "Conference", "Party"];
+
+interface SearchParams {
+  sub?: string;
+  tag?: string;
+  platform?: string;
+  license?: string;
+  tier?: string;
+  event?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  q?: string;
+}
+
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ sub?: string }>;
+  searchParams: Promise<SearchParams>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-
-  // Check if it's a category
   const category = await prisma.productCategory.findUnique({ where: { slug } });
   if (category && !category.parentId) {
     return { title: category.name, description: category.description || `Browse ${category.name} from MVM FOX.` };
   }
-
-  // Check if it's a product
   const product = await prisma.product.findUnique({ where: { slug } });
   if (product) {
     return { title: product.name, description: product.shortDescription, openGraph: { title: product.name, description: product.shortDescription } };
   }
-
   return { title: "Not Found" };
 }
 
@@ -45,7 +61,7 @@ export default async function ShopSlugPage({ params, searchParams }: Props) {
   // ── Try category first ──
   const topLevelCategory = await prisma.productCategory.findUnique({ where: { slug } });
   if (topLevelCategory && !topLevelCategory.parentId) {
-    return renderCategoryPage(topLevelCategory, sp.sub);
+    return renderCategoryPage(topLevelCategory, sp);
   }
 
   // ── Try product ──
@@ -64,100 +80,247 @@ export default async function ShopSlugPage({ params, searchParams }: Props) {
   notFound();
 }
 
+// Build filter params into URL search params string
+function buildFilterUrl(basePath: string, filters: SearchParams, key: string, value: string | null): string {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(filters)) {
+    if (v && k !== key) params.set(k, v);
+  }
+  if (value) params.set(key, value);
+  const qs = params.toString();
+  return qs ? `${basePath}?${qs}` : basePath;
+}
+
+// Active filter chip component
+function FilterChip({ label, onRemove }: { label: string; onRemove: string }) {
+  return (
+    <Link
+      href={onRemove}
+      className="inline-flex items-center gap-1 h-7 px-2.5 rounded-full bg-accent/10 text-accent text-caption font-medium hover:bg-accent/20 transition-colors"
+    >
+      {label}
+      <X size={12} />
+    </Link>
+  );
+}
+
 // ═══ CATEGORY PAGE ═══
-async function renderCategoryPage(topLevel: { id: string; slug: string; name: string; description: string | null }, subId?: string) {
+async function renderCategoryPage(topLevel: { id: string; slug: string; name: string; description: string | null; imageUrl?: string | null }, sp: SearchParams) {
   const Icon = categoryIcons[topLevel.slug] || Monitor;
+  const basePath = `/shop/${topLevel.slug}`;
 
   const subcategories = await prisma.productCategory.findMany({
     where: { parentId: topLevel.id },
     orderBy: { sortOrder: "asc" },
   });
 
-  const filterIds = subId
-    ? [subId]
+  // ── Build product query with filters ──
+  const categoryIds = sp.sub
+    ? [sp.sub]
     : [topLevel.id, ...subcategories.map((s) => s.id)];
 
+  const where: Record<string, unknown> = {
+    status: "PUBLISHED",
+    isActive: true,
+    categoryId: { in: categoryIds },
+  };
+
+  // Tag filter (Electronics)
+  if (sp.tag) {
+    where.tags = { has: sp.tag };
+  }
+
+  // Platform filter (Software)
+  if (sp.platform) {
+    where.platform = sp.platform;
+  }
+
+  // License filter (Software)
+  if (sp.license) {
+    where.licenseType = sp.license;
+  }
+
+  // Price range
+  if (sp.minPrice || sp.maxPrice) {
+    where.price = {};
+    if (sp.minPrice) (where.price as Record<string, number>).gte = parseFloat(sp.minPrice);
+    if (sp.maxPrice) (where.price as Record<string, number>).lte = parseFloat(sp.maxPrice);
+  }
+
+  // Search query
+  if (sp.q) {
+    where.OR = [
+      { name: { contains: sp.q, mode: "insensitive" } },
+      { shortDescription: { contains: sp.q, mode: "insensitive" } },
+    ];
+  }
+
   const products = await prisma.product.findMany({
-    where: { status: "PUBLISHED", isActive: true, categoryId: { in: filterIds } },
+    where,
     include: { images: { where: { isPrimary: true }, take: 1 }, category: true, brand: true },
     orderBy: { sortOrder: "asc" },
   });
 
-  const selectedSub = subId ? subcategories.find((s) => s.id === subId) : null;
+  // Compute price range for the slider
+  const priceStats = await prisma.product.aggregate({
+    where: { status: "PUBLISHED", isActive: true, categoryId: { in: [topLevel.id, ...subcategories.map((s) => s.id)] } },
+    _min: { price: true },
+    _max: { price: true },
+  });
+  const priceMin = Number(priceStats._min.price || 0);
+  const priceMax = Number(priceStats._max.price || 1000);
+
+  const selectedSub = sp.sub ? subcategories.find((s) => s.id === sp.sub) : null;
+
+  // Build active filter chips
+  const activeFilters: { label: string; removeUrl: string }[] = [];
+  if (selectedSub) activeFilters.push({ label: selectedSub.name, removeUrl: buildFilterUrl(basePath, sp, "sub", null) });
+  if (sp.tag) activeFilters.push({ label: sp.tag, removeUrl: buildFilterUrl(basePath, sp, "tag", null) });
+  if (sp.platform) activeFilters.push({ label: sp.platform, removeUrl: buildFilterUrl(basePath, sp, "platform", null) });
+  if (sp.license) activeFilters.push({ label: sp.license, removeUrl: buildFilterUrl(basePath, sp, "license", null) });
+  if (sp.tier) activeFilters.push({ label: sp.tier, removeUrl: buildFilterUrl(basePath, sp, "tier", null) });
+  if (sp.event) activeFilters.push({ label: sp.event, removeUrl: buildFilterUrl(basePath, sp, "event", null) });
+  if (sp.minPrice) activeFilters.push({ label: `Min $${sp.minPrice}`, removeUrl: buildFilterUrl(basePath, sp, "minPrice", null) });
+  if (sp.maxPrice) activeFilters.push({ label: `Max $${sp.maxPrice}`, removeUrl: buildFilterUrl(basePath, sp, "maxPrice", null) });
+  if (sp.q) activeFilters.push({ label: `"${sp.q}"`, removeUrl: buildFilterUrl(basePath, sp, "q", null) });
+
+  // Determine which filter sets to show
+  const isElectronics = topLevel.slug === "electronics";
+  const isSoftware = topLevel.slug === "software";
+  const isCatering = topLevel.slug === "catering-shop";
 
   return (
     <div>
-      <PageHero
-        title={topLevel.name}
-        subtitle={topLevel.description || ""}
+      <CategoryHero
+        name={topLevel.name}
+        description={topLevel.description}
+        backgroundImage={topLevel.imageUrl || (products.length > 0 ? products[0].images[0]?.url : undefined)}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Shop", href: "/shop" }, { label: topLevel.name }]}
       />
 
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="tech" variant="light" />
+        <div className="container-mvm relative z-10">
+          {/* Subcategory chips */}
           <ScrollReveal>
-            <div className="flex flex-wrap items-center gap-3 mb-8">
+            <div className="flex flex-wrap items-center gap-3 mb-6">
               <Link href="/shop" className="inline-flex items-center gap-1.5 text-body-sm text-text-secondary hover:text-text-primary transition-colors">
                 <ArrowLeft size={14} /> All Categories
               </Link>
               <span className="text-text-tertiary">|</span>
-              <Link href={`/shop/${topLevel.slug}`} className={`h-9 px-4 rounded-full text-body-sm font-medium transition-colors ${!subId ? "bg-accent text-text-on-accent" : "border border-border-default text-text-secondary hover:bg-surface-neutral"}`}>
+              <Link href={basePath} className={cn(
+                "h-9 px-4 rounded-full text-body-sm font-medium transition-colors",
+                !sp.sub ? "bg-accent text-text-on-accent" : "border border-border-default text-text-secondary hover:bg-surface-neutral",
+              )}>
                 All {topLevel.name}
               </Link>
               {subcategories.map((sub) => (
-                <Link key={sub.id} href={`/shop/${topLevel.slug}?sub=${sub.id}`} className={`h-9 px-4 rounded-full text-body-sm font-medium transition-colors ${subId === sub.id ? "bg-accent text-text-on-accent" : "border border-border-default text-text-secondary hover:bg-surface-neutral"}`}>
+                <Link key={sub.id} href={buildFilterUrl(basePath, sp, "sub", sub.id)} className={cn(
+                  "h-9 px-4 rounded-full text-body-sm font-medium transition-colors",
+                  sp.sub === sub.id ? "bg-accent text-text-on-accent" : "border border-border-default text-text-secondary hover:bg-surface-neutral",
+                )}>
                   {sub.name}
                 </Link>
               ))}
             </div>
           </ScrollReveal>
 
-          <p className="text-body-sm text-text-secondary mb-6">
-            {products.length} product{products.length !== 1 ? "s" : ""}
-            {selectedSub ? ` in ${selectedSub.name}` : ""}
-          </p>
-
-          {products.length === 0 ? (
-            <div className="text-center py-20">
-              <Icon size={48} className="mx-auto text-text-tertiary mb-4" />
-              <h3 className="text-h3 font-semibold mb-2">No products yet</h3>
-              <p className="text-body text-text-secondary">Check back soon.</p>
+          {/* Active filter chips */}
+          {activeFilters.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <SlidersHorizontal size={14} className="text-text-tertiary" />
+              <span className="text-caption text-text-tertiary">Active filters:</span>
+              {activeFilters.map((f) => (
+                <FilterChip key={f.label} label={f.label} onRemove={f.removeUrl} />
+              ))}
+              <Link href={basePath} className="text-caption text-accent hover:underline ml-1">Clear all</Link>
             </div>
-          ) : (
-            <ScrollReveal>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {products.map((p) => {
-                  const img = p.images[0];
-                  return (
-                    <Link key={p.id} href={`/shop/${p.slug}`} className="group rounded-lg border border-border-subtle bg-white overflow-hidden card-interactive">
-                      <div className="relative aspect-square bg-surface-neutral overflow-hidden">
-                        {img ? (
-                          <Image src={img.url} alt={img.alt || p.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center"><Icon size={32} className="text-text-tertiary" /></div>
-                        )}
-                        {p.compareAtPrice && <div className="absolute top-3 left-3"><span className="inline-flex h-6 px-2 rounded-full bg-error text-white text-caption font-medium items-center">Sale</span></div>}
-                      </div>
-                      <div className="p-4">
-                        {p.brand && <p className="text-caption text-text-tertiary mb-1">{p.brand.name}</p>}
-                        {!p.brand && p.category && <p className="text-caption text-accent font-medium mb-1">{p.category.name}</p>}
-                        <h3 className="text-body font-semibold mb-1 group-hover:text-accent transition-colors line-clamp-1">{p.name}</h3>
-                        <p className="text-body-sm text-text-secondary mb-2 line-clamp-2">{p.shortDescription}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-body font-semibold text-accent">
-                            {p.productType === "subscription" ? `${formatCurrency(p.price)}/mo` : formatCurrency(p.price)}
-                          </span>
-                          {p.compareAtPrice && <span className="text-body-sm text-text-tertiary line-through">{formatCurrency(p.compareAtPrice)}</span>}
-                        </div>
-                        {p.stock <= 5 && p.stock > 0 && <p className="text-caption text-warning mt-1">Only {p.stock} left</p>}
-                        {p.stock === 0 && <p className="text-caption text-error mt-1">Out of stock</p>}
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </ScrollReveal>
           )}
+
+          {/* Content area with sidebar filters + product grid */}
+          <div className="flex gap-8">
+            {/* Filter sidebar */}
+            <CategoryFilters
+              basePath={basePath}
+              currentFilters={sp as Record<string, string | undefined>}
+              subcategories={subcategories.map((s) => ({ id: s.id, name: s.name }))}
+              isElectronics={isElectronics}
+              isSoftware={isSoftware}
+              isCatering={isCatering}
+              electronicsTags={electronicsTagFilters}
+              softwarePlatforms={softwarePlatformFilters}
+              softwareLicenses={softwareLicenseFilters}
+              cateringTiers={cateringTierFilters}
+              cateringEvents={cateringEventFilters}
+              priceMin={priceMin}
+              priceMax={priceMax}
+            />
+
+            {/* Product grid */}
+            <div className="flex-1 min-w-0">
+              <p className="text-body-sm text-text-secondary mb-6">
+                {products.length} product{products.length !== 1 ? "s" : ""}
+                {selectedSub ? ` in ${selectedSub.name}` : ""}
+              </p>
+
+              {products.length === 0 ? (
+                <EmptyState
+                  title="No products match your filters"
+                  description="Try adjusting your filters or browse all products in this category."
+                  icon={<Search size={32} className="text-text-tertiary" />}
+                  action={
+                    <Link href={basePath} className="text-body-sm text-accent hover:underline">
+                      Clear all filters
+                    </Link>
+                  }
+                />
+              ) : (
+                <ScrollReveal>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {products.map((p) => {
+                      const img = p.images[0];
+                      return (
+                        <Link key={p.id} href={`/shop/${p.slug}`} className="group rounded-lg border border-border-subtle bg-white overflow-hidden card-interactive">
+                          <div className="relative aspect-square bg-surface-neutral overflow-hidden">
+                            {img ? (
+                              <Image src={img.url} alt={img.alt || p.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center"><Icon size={32} className="text-text-tertiary" /></div>
+                            )}
+                            {p.compareAtPrice && <div className="absolute top-3 left-3"><span className="inline-flex h-6 px-2 rounded-full bg-error text-white text-caption font-medium items-center">Sale</span></div>}
+                          </div>
+                          <div className="p-4">
+                            {p.brand && <p className="text-caption text-text-tertiary mb-1">{p.brand.name}</p>}
+                            {!p.brand && p.category && <p className="text-caption text-accent font-medium mb-1">{p.category.name}</p>}
+                            <h3 className="text-body font-semibold mb-1 group-hover:text-accent transition-colors line-clamp-1">{p.name}</h3>
+                            <p className="text-body-sm text-text-secondary mb-2 line-clamp-2">{p.shortDescription}</p>
+                            {/* Tags */}
+                            {p.tags && p.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mb-2">
+                                {p.tags.slice(0, 3).map((tag: string) => (
+                                  <span key={tag} className="inline-flex h-5 px-1.5 rounded bg-surface-neutral text-caption text-text-tertiary">
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <span className="text-body font-semibold text-accent">
+                                {p.productType === "subscription" ? `${formatCurrency(p.price)}/mo` : formatCurrency(p.price)}
+                              </span>
+                              {p.compareAtPrice && <span className="text-body-sm text-text-tertiary line-through">{formatCurrency(p.compareAtPrice)}</span>}
+                            </div>
+                            {p.stock <= 5 && p.stock > 0 && <p className="text-caption text-warning mt-1">Only {p.stock} left</p>}
+                            {p.stock === 0 && <p className="text-caption text-error mt-1">Out of stock</p>}
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </ScrollReveal>
+              )}
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -198,8 +361,9 @@ async function renderProductPage(product: Awaited<ReturnType<typeof prisma.produ
         ]}
       />
 
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="tech" variant="light" />
+        <div className="container-mvm relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Images */}
             <div>
@@ -277,8 +441,9 @@ async function renderProductPage(product: Awaited<ReturnType<typeof prisma.produ
 
       {/* Cross-sell */}
       {relatedProducts.length > 0 && (
-        <section className="section-padding bg-bg-primary-dark text-text-on-dark">
-          <div className="container-mvm">
+        <section className="relative section-padding bg-bg-primary-dark text-text-on-dark overflow-hidden">
+          <AmbientBackground icons="tech" variant="dark" />
+          <div className="container-mvm relative z-10">
             <h2 className="text-h2 font-bold tracking-tight mb-8">You might also like...</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {relatedProducts.map((rp: any) => (

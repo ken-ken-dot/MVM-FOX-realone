@@ -5,6 +5,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import { PageHero } from "@/components/sections/page-hero";
+import { AmbientBackground } from "@/components/ui";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -46,7 +47,8 @@ export default async function CateringPackagePage({ params }: Props) {
         ]}
       />
 
-      <section className="section-padding bg-bg-primary-light">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="catering" variant="light" />
         <div className="container-mvm max-w-4xl">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="lg:col-span-2">

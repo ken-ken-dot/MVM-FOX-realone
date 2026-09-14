@@ -23,10 +23,21 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://mvmfox.com",
   ),
+  icons: {
+    icon: "/favicon.svg",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
     siteName: "MVM FOX",
+    images: [
+      {
+        url: "/logo.svg",
+        width: 280,
+        height: 48,
+        alt: "MVM FOX",
+      },
+    ],
   },
 };
 

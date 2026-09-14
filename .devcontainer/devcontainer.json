@@ -1,0 +1,16 @@
+{
+  "name": "MVM FOX",
+  "features": {
+    "ghcr.io/devcontainers/features/postgresql:1": {
+      "version": "16"
+    }
+  },
+  "postStartCommand": "sudo service postgresql start && pg_isready",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "MVM FOX Dev Server",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}

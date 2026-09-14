@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { UtensilsCrossed, ArrowRight, Heart, Building2, Cake, Flame } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import { PageHero } from "@/components/sections/page-hero";
+import { AmbientBackground } from "@/components/ui";
 
 const iconMap: Record<string, React.ElementType> = {
   heart: Heart,
@@ -53,12 +55,17 @@ export default async function CateringPage() {
         title="Catering"
         subtitle="Exceptional culinary experiences for every occasion. From intimate gatherings to grand celebrations."
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Catering" }]}
+        backgroundImage={{
+          src: "https://images.unsplash.com/photo-1555244162-803834f70033?w=1920&q=80",
+          alt: "Elegant catering setup with beautifully presented dishes",
+        }}
       />
 
       {/* Event types */}
       {events.length > 0 && (
-        <section className="section-padding bg-bg-primary-light">
-          <div className="container-mvm">
+        <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+          <AmbientBackground icons="catering" variant="light" />
+          <div className="container-mvm relative z-10">
             <div className="text-center mb-12">
               <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
                 We Cater
@@ -96,8 +103,9 @@ export default async function CateringPage() {
 
       {/* Menus & Packages */}
       {hasPackages && (
-        <section className="section-padding bg-bg-primary-dark text-text-on-dark">
-          <div className="container-mvm">
+        <section className="relative section-padding bg-bg-primary-dark text-text-on-dark overflow-hidden">
+          <AmbientBackground icons="catering" variant="dark" />
+          <div className="container-mvm relative z-10">
             <div className="text-center mb-12">
               <p className="text-accent text-body-sm font-medium tracking-wider uppercase mb-2">
                 Our Menus
@@ -122,8 +130,20 @@ export default async function CateringPage() {
                         <Link
                           key={pkg.id}
                           href={`/catering/${pkg.slug}`}
-                          className="group rounded-lg border border-border-dark bg-surface-card-dark p-6 hover:border-accent/30 transition-colors"
+                          className="group rounded-lg border border-border-dark bg-surface-card-dark overflow-hidden hover:border-accent/30 transition-colors"
                         >
+                          {pkg.imageUrl && (
+                            <div className="relative aspect-[16/9] overflow-hidden">
+                              <Image
+                                src={pkg.imageUrl}
+                                alt={pkg.name}
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            </div>
+                          )}
+                          <div className="p-6">
                           <h4 className="text-h4 font-semibold mb-2 group-hover:text-accent transition-colors">
                             {pkg.name}
                           </h4>
@@ -142,6 +162,7 @@ export default async function CateringPage() {
                               Minimum {pkg.minimumGuests} guests
                             </p>
                           )}
+                          </div>
                         </Link>
                       ))}
                     </div>
@@ -153,8 +174,9 @@ export default async function CateringPage() {
       )}
 
       {/* CTA */}
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm text-center">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="catering" variant="light" />
+        <div className="container-mvm text-center relative z-10">
           <UtensilsCrossed
             size={48}
             className="mx-auto text-accent mb-6"

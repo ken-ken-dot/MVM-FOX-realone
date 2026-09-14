@@ -292,6 +292,67 @@ body {
   }
 }
 
+/* ─── Ambient Background Drift ─── */
+/* Per-icon drift uses --drift-x and --drift-y CSS custom properties */
+@keyframes ambient-drift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(var(--drift-x, 3px), calc(var(--drift-y, -2px) * -1)); }
+  50% { transform: translate(calc(var(--drift-x, -1px) * -0.5), var(--drift-y, 4px)); }
+  75% { transform: translate(calc(var(--drift-x, -3px) * -1), calc(var(--drift-y, -1px) * -0.5)); }
+  100% { transform: translate(0, 0); }
+}
+
+.ambient-drift {
+  animation: ambient-drift var(--ambient-duration, 25s) ease-in-out infinite;
+  animation-delay: var(--ambient-delay, 0s);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-drift {
+    animation: none;
+  }
+}
+
+/* ─── Ambient Icon Field (v12) ─── */
+@keyframes ambient-drift-v12 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(4px, -4px); }
+}
+
+.ambient-drift-v12 {
+  animation: ambient-drift-v12 var(--ambient-duration, 10s) ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-drift-v12 {
+    animation: none;
+  }
+}
+
+/* ─── Page Transition Smoothing ─── */
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .page-enter-active {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 /* ─── Add-to-Cart Button Feedback ─── */
 @keyframes cart-pulse {
   0% { transform: scale(1); }

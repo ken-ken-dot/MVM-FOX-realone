@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "(pg_isready -q 2>/dev/null || sudo service postgresql start 2>/dev/null) && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

@@ -31,12 +31,7 @@ export function Footer() {
           {/* Brand column */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center mb-4">
-              <span className="text-h3 font-bold text-text-on-dark tracking-tight">
-                MVM
-              </span>
-              <span className="text-h3 font-bold text-accent ml-1 tracking-tight">
-                FOX
-              </span>
+              <img src="/logo-white.svg" alt="MVM FOX" className="h-8" />
             </Link>
             <p className="text-body-sm text-text-on-dark-secondary max-w-sm mb-6">
               A multi-service business platform delivering premium catering,

@@ -11,6 +11,7 @@ export const quoteRequestSchema = z.object({
   description: z.string().min(10, "Please describe what you need (at least 10 characters)"),
   eventDate: z.string().optional(),
   guestCount: z.string().optional(),
+  notes: z.string().max(500, "Notes must be 500 characters or fewer").optional(),
 });
 
 export type QuoteRequestInput = z.infer<typeof quoteRequestSchema>;
@@ -54,7 +55,7 @@ export const checkoutSchema = z.object({
   state: z.string().min(1, "State is required"),
   zip: z.string().min(1, "ZIP code is required"),
   country: z.string().optional().default("US"),
-  notes: z.string().optional(),
+  notes: z.string().max(500, "Notes must be 500 characters or fewer").optional(),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;

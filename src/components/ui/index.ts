@@ -11,3 +11,5 @@ export { ToastProvider, useToast } from "./toast";
 export { OptimizedImage } from "./optimized-image";
 export { Pagination } from "./pagination";
 export { ScrollReveal } from "./scroll-reveal";
+export { AmbientBackground } from "./ambient-background";
+export { AmbientIconField } from "./ambient-icon-field";

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/sections/page-hero";
+import { AmbientBackground } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -14,8 +15,9 @@ export default function TermsPage() {
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Terms of Service" }]}
       />
 
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm max-w-3xl">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="mixed" variant="light" />
+        <div className="container-mvm max-w-3xl relative z-10">
           <p className="text-body-sm text-text-tertiary mb-8">
             Last updated: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
           </p>

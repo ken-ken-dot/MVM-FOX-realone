@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contactSchema, type ContactInput } from "@/validators";
-import { Input, Textarea, Button } from "@/components/ui";
+import { Input, Textarea, Button, AmbientBackground } from "@/components/ui";
 import { PageHero } from "@/components/sections/page-hero";
 import { Mail, Phone, MapPin, CheckCircle } from "lucide-react";
 
@@ -50,8 +50,9 @@ export default function ContactPage() {
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Contact" }]}
       />
 
-      <section className="section-padding bg-bg-primary-light">
-        <div className="container-mvm">
+      <section className="relative section-padding bg-bg-primary-light overflow-hidden">
+        <AmbientBackground icons="mixed" variant="light" />
+        <div className="container-mvm relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Contact info */}
             <div>

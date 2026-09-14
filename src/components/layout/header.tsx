@@ -87,15 +87,8 @@ export function Header() {
       <div className="container-mvm">
         <div className="flex h-16 items-center justify-between md:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="flex items-center">
-              <span className="text-h3 font-bold text-text-on-dark tracking-tight">
-                MVM
-              </span>
-              <span className="text-h3 font-bold text-accent ml-1 tracking-tight">
-                FOX
-              </span>
-            </div>
+          <Link href="/" className="flex items-center group">
+            <img src="/logo-white.svg" alt="MVM FOX" className="h-8 md:h-10" />
           </Link>
 
           {/* Desktop Nav */}
